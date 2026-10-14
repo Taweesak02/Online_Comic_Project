@@ -1,3 +1,0 @@
-export default function ChoiceChips({ label, options, selectedIds, onToggle, emptyText }) {
-  return <fieldset><legend className="text-sm font-semibold text-[#0d0c22]">{label}</legend><div className="mt-2 flex flex-wrap gap-2">{options.length ? options.map((option) => { const selected = selectedIds.includes(option.value); return <button className={`rounded-full border px-3 py-1.5 text-sm transition ${selected ? 'border-[#213f68] bg-[#213f68] text-white' : 'border-[#e2e6e6] bg-white text-[#0d0c22] hover:border-[#213f68]'}`} type="button" onClick={() => onToggle(option.value)} aria-pressed={selected} key={option.value}>{option.label}</button>; }) : <span className="text-sm text-[#666666]">{emptyText}</span>}</div></fieldset>;
-}
