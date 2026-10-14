@@ -18,7 +18,7 @@ export default function ManagementLayout({
                     type="button"
                     onClick={() => onChange(item.id)}
                     aria-current={selected ? "page" : undefined}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#213f68] ${selected ? "bg-[#213f68] text-white" : "text-[#0d0c22] hover:bg-[#f8f8f8]"}`}
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#213f68] ${selected ? "bg-[#A6D577]" : "text-[#0d0c22] hover:bg-[#f8f8f8]"}`}
                   >
                     <span className="text-xs font-bold opacity-60">
                       {String(index + 1).padStart(2, "0")}

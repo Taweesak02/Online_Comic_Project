@@ -13,7 +13,7 @@ export default function ProfileEmailForm({ emailForm, setEmailForm, saving, subm
                     <input className={inputClass} type="password" value={emailForm.currentPassword} onChange={(event) => setEmailForm((current) => ({ ...current, currentPassword: event.target.value }))} autoComplete="current-password" required />
                 </label>
             </div>
-            <button className="mt-5 rounded-xl bg-[#213f68] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50" type="submit" disabled={saving === 'email'}>
+            <button className="mt-5 rounded-xl bg-[#59923E] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50" type="submit" disabled={saving === 'email'}>
                 {saving === 'email' ? 'กำลังบันทึก...' : 'เปลี่ยนอีเมล'}
             </button>
         </form>

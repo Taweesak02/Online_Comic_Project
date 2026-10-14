@@ -15,7 +15,7 @@ export default function ProfilePasswordForm({ passwordForm, setPasswordForm, sav
                     <input className={inputClass} type="password" minLength="6" value={passwordForm.confirmPassword} onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))} autoComplete="new-password" required />
                 </label>
             </div>
-            <button className="mt-5 rounded-xl bg-[#213f68] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50" type="submit" disabled={saving === 'password'}>
+            <button className="mt-5 rounded-xl bg-[#59923E] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50" type="submit" disabled={saving === 'password'}>
                 {saving === 'password' ? 'กำลังบันทึก...' : 'เปลี่ยนรหัสผ่าน'}
             </button>
         </form>

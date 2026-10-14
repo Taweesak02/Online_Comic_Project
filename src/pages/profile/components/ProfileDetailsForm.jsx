@@ -7,7 +7,7 @@ export default function ProfileDetailsForm({ username, setUsername, saving, subm
             <label className="mt-5 block text-sm font-semibold text-[#0d0c22]"><span>ชื่อผู้ใช้</span>
                 <input className={inputClass} value={username} onChange={(event) => setUsername(event.target.value)} required />
             </label>
-            <button className="mt-5 rounded-xl bg-[#213f68] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50" type="submit" disabled={saving === 'profile'}>
+            <button className="mt-5 rounded-xl bg-[#59923E] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50" type="submit" disabled={saving === 'profile'}>
                 {saving === 'profile' ? 'กำลังบันทึก...' : 'บันทึกชื่อและรูป'}
             </button>
         </form>

@@ -37,7 +37,7 @@ export default function RegisterForm({ form, error, loading, updateField, handle
                     type="password"
                     value={form.password}
                     onChange={updateField}
-                    placeholder="อย่างน้อย 8 ตัวอักษร"
+                    placeholder="อย่างน้อย 6 ตัวอักษร"
                     className="mt-1.5 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-[#59923E] focus:ring-2 focus:ring-[#A6D577]/50"
                     required
                 />

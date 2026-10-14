@@ -5,8 +5,6 @@ const formatStat = (stat) => {
 };
 
 export default function ComicDashboard({ comics, overview, overviewError, onRetry, onChange }) {
-    const active = comics.filter((comic) => comic.isActive !== false);
-    const review = active.filter((comic) => ['UNAPPROVED', 'RESUBMIT'].includes(comic.approved));
     const stats = [
         { label: 'การ์ตูนทั้งหมด', value: overview?.totalComics },
         { label: 'ตอนทั้งหมด', value: overview?.totalChapters },
@@ -17,9 +15,10 @@ export default function ComicDashboard({ comics, overview, overviewError, onRetr
         { label: 'ผู้ติดตาม', value: overview?.totalFollowers },
     ];
     const statusCards = [
-        { label: 'อนุมัติและเปิดใช้งาน', value: active.filter((comic) => comic.approved === 'APPROVED').length, section: 'comics' },
-        { label: 'อยู่ระหว่างการพิจารณา', value: review.length, section: 'review' },
-        { label: 'ปิดใช้งานแล้ว', value: comics.length - active.length, section: 'inactive' },
+        { label: 'อนุมัติแล้ว', value: overview?.approval?.approved, section: 'comics' },
+        { label: 'ยังไม่อนุมัติ', value: overview?.approval?.unapproved, section: 'review' },
+        { label: 'ส่งตรวจใหม่', value: overview?.approval?.resubmit, section: 'review' },
+        { label: 'ปิดใช้งานแล้ว', value: overview?.approval?.inactive, section: 'inactive' },
     ];
     return <section aria-labelledby="creator-dashboard-title">
         <p className="text-sm font-semibold text-[#213f68]">DASHBOARD</p>
@@ -39,6 +38,40 @@ export default function ComicDashboard({ comics, overview, overviewError, onRetr
                 <strong className="mt-3 block text-3xl text-[#213f68]">{card.value}</strong>
                 <span className="mt-4 block text-xs font-semibold text-[#213f68]">ดูรายการ →</span>
             </button>)}
+        </div>
+        <h3 className="mt-8 text-lg font-bold text-[#0d0c22]">สถานะการเผยแพร่</h3>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+                ['กำลังเผยแพร่', overview?.status?.ongoing],
+                ['จบแล้ว', overview?.status?.completed],
+                ['พักการเผยแพร่', overview?.status?.hiatus],
+                ['ยกเลิก', overview?.status?.cancelled],
+            ].map(([label, value]) => <div key={label} className="rounded-2xl border border-[#e7e7e9] bg-white p-5">
+                <span className="text-sm text-[#666666]">{label}</span>
+                <strong className="mt-3 block text-3xl text-[#213f68]">{value == null ? '—' : Number(value).toLocaleString('th-TH')}</strong>
+            </div>)}
+        </div>
+        <h3 className="mt-8 text-lg font-bold text-[#0d0c22]">สถิติช่วงเวลา</h3>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+                ['ตอนใหม่สัปดาห์นี้', overview?.period?.newChaptersThisWeek],
+                ['ยอดเข้าชมสัปดาห์นี้', overview?.period?.viewsThisWeek],
+                ['ยอดเข้าชมเดือนนี้', overview?.period?.viewsThisMonth],
+                ['ผู้ติดตามใหม่สัปดาห์นี้', overview?.period?.newFollowersThisWeek],
+                ['รายการโปรดใหม่สัปดาห์นี้', overview?.period?.newFavoritesThisWeek],
+            ].map(([label, value]) => <div key={label} className="rounded-2xl border border-[#e7e7e9] bg-white p-5">
+                <span className="text-sm text-[#666666]">{label}</span>
+                <strong className="mt-3 block text-3xl text-[#213f68]">{value == null ? '—' : Number(value).toLocaleString('th-TH')}</strong>
+            </div>)}
+        </div>
+        <h3 className="mt-8 text-lg font-bold text-[#0d0c22]">การ์ตูนยอดเข้าชมสูงสุด</h3>
+        <div className="mt-4 overflow-hidden rounded-2xl border border-[#e7e7e9] bg-white">
+            {(overview?.topComicsByViews ?? []).length ? <ol className="divide-y divide-[#eeeeee]">
+                {overview.topComicsByViews.map((comic, index) => <li key={comic.id ?? `${comic.title}-${index}`} className="flex items-center justify-between gap-4 p-4">
+                    <span className="min-w-0 truncate text-sm font-medium text-[#213f68]">{index + 1}. {comic.title ?? `การ์ตูน ${comic.id}`}</span>
+                    <span className="shrink-0 text-sm font-semibold tabular-nums text-[#555555]">{Number(comic.viewCount ?? 0).toLocaleString('th-TH')} วิว</span>
+                </li>)}
+            </ol> : <p className="p-4 text-sm text-[#666666]">ยังไม่มีข้อมูลการเข้าชม</p>}
         </div>
 
     </section>;
