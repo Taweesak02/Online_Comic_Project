@@ -29,3 +29,10 @@ node_modules/
 .env.*
 !.env.example
 !.env*.example
+
+# SonarQube local configuration and generated output
+sonar-project.properties
+sonar_report.py
+**/.scannerwork/
+**/sonar-report*.json
+**/sonar-report*.pdf

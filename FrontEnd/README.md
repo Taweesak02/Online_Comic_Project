@@ -69,26 +69,6 @@ API ใช้ Axios client ใน [src/api/client.js](src/api/client.js) โด�
 
 รัน `npm test` เพื่อทดสอบการแปลงข้อมูลรายการ Wallet การจัดรูปแบบราคาและวันที่ ข้อมูลการ์ตูน ข้อความข้อผิดพลาด และการ render components โดยใช้ Vitest โหลด JSX สำหรับทดสอบสถานะ loading/error ปุ่มชำระเงิน ฟอร์มค้นหา และ dialog โดยไม่ต้องเปิด backend ก่อนส่งงานให้ตรวจ lint และ build พร้อมลอง flow ที่แก้ไขกับ backend รวมถึงการโฟกัสและปิด dialog ด้วยปุ่ม Escape ใน browser
 
-## SonarQube coverage
-
-Run these steps from the project root, in order:
-
-```sh
-npm ci
-npm run sonar:prepare
-# After the command succeeds, run your existing SonarQube scanner command.
-```
-
-`sonar:prepare` runs all tests with coverage and validates `coverage/lcov.info`, the report configured in `sonar-project.properties`. Validation requires covered source lines, checks every source path, and normalizes Windows separators to `/` for Linux/Docker scanners. `npm run test:coverage` performs the same steps. Open `coverage/index.html` for the detailed local report.
-
-Wait for coverage generation to finish before scanning. Vitest clears the previous report when a coverage run starts, so an interrupted or concurrent run can leave the scanner without an LCOV file. `npm test` alone does not generate coverage.
-
-If scanning in Docker, mount the entire project root **including the generated `coverage/` directory** into the scanner workspace. The application Docker image does not contain coverage (`.dockerignore` excludes it). In CI, generate coverage in the scanner job or transfer `coverage/lcov.info` as an artifact before scanning; the report is intentionally not tracked in Git.
-
-Coverage includes all JavaScript and JSX source files, including untested files. The local report measures the whole project; SonarQube's **new coverage** uses its configured new-code baseline and also accounts for conditions. Local line coverage alone does not prove the quality gate passes. The dashboard updates only after a fresh analysis.
-
-If SonarQube still reports 0%, check the scanner log for LCOV import messages, missing report files, or unresolved source paths, and confirm the scanner uses this project root and `sonar.javascript.lcov.reportPaths=coverage/lcov.info`.
-
 ## โครงสร้างโปรเจกต์
 
 ```text

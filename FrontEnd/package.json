@@ -6,7 +6,6 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage && node scripts/verify-coverage.mjs",
-    "sonar:prepare": "npm run test:coverage",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",

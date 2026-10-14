@@ -1,3 +1,0 @@
-curl -u sqa_7e7cd32b01f9f086440f1a6618a8431f5ad03112: "http://localhost:9000/api/issues/search?componentKeys=webproject-frontend&ps=200" -o issues.json
-
-  docker run --rm --memory=8g -e SONAR_HOST_URL="http://host.docker.internal:9000" -e SONAR_TOKEN="sqa_7e7cd32b01f9f086440f1a6618a8431f5ad03112" -v "$(pwd):/usr/src" sonarsource/sonar-scanner-cli

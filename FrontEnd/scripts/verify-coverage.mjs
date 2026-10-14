@@ -24,4 +24,4 @@ for (const line of report.split(/\r?\n/)) {
 }
 if (!files || !coveredLines) throw new Error('Coverage report is empty or has no covered source lines. Run npm run test:coverage.');
 await writeFile(reportPath, normalized.join('\n'));
-console.log(`SonarQube LCOV ready: ${files} source files, ${coveredLines} covered lines. Run the scanner from ${root}`);
+console.log(`Coverage report ready: ${files} source files, ${coveredLines} covered lines. Report root: ${root}`);
