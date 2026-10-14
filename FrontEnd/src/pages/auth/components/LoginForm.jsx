@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 
 export default function LoginForm({ form, error, loading, updateField, handleSubmit }) {
     return (
@@ -30,10 +29,6 @@ export default function LoginForm({ form, error, loading, updateField, handleSub
                     required
                 />
             </label>
-
-            <Link className="block text-sm text-[#487c31] hover:underline" to="/forgot-password">
-                ลืมรหัสผ่าน?
-            </Link>
 
             {error && (
                 <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">

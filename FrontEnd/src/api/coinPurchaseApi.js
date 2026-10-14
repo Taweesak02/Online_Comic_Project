@@ -47,17 +47,6 @@ export const getPaymentStatus = async (transactionId) => unwrap((await api.get(`
 
 export const cancelPayment = async (transactionId) => unwrap((await api.patch(`/payment/${encodeURIComponent(transactionId)}/cancel`)).data);
 
-// Keep the request alive when the document is closed or reloaded.
-export const cancelPaymentOnPageExit = async (transactionId) => {
-    const token = localStorage.getItem('accessToken');
-    const response = await fetch(`${api.defaults.baseURL.replace(/\/$/, '')}/payment/${encodeURIComponent(transactionId)}/cancel`, {
-        method: 'PATCH',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        keepalive: true,
-    });
-    if (!response.ok) throw new Error('Unable to cancel payment on page exit');
-};
-
 export const verifyPaymentSlip = async (transactionId, slip) => {
     const formData = new FormData();
     formData.append('slip', slip);

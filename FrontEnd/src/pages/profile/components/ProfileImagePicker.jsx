@@ -4,7 +4,7 @@ export default function ProfileImagePicker({ username, preview, imageFile, setIm
             <div className="mx-auto grid size-40 place-items-center overflow-hidden rounded-full border-2 border-[#dcdacc] bg-[#f8f8f8]">
                 {preview ? <img className="size-full object-cover" src={preview} alt="รูปโปรไฟล์" /> : <span className="text-5xl font-bold uppercase text-[#213f68]">{username.slice(0, 1) || '?'}</span>}
             </div>
-            <label className="mt-5 inline-flex cursor-pointer rounded-full bg-[#213f68] px-5 py-2.5 text-sm font-semibold text-white">
+            <label className="mt-5 inline-flex cursor-pointer rounded-full bg-[#59923E] px-5 py-2.5 text-sm font-semibold text-white">
                 <span>เลือกรูปโปรไฟล์</span>
                 <input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setImageFile(event.target.files?.[0] ?? null)} />
             </label>

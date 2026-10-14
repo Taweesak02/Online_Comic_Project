@@ -17,7 +17,7 @@ export default function CoinPurchaseForm({
             />
 
             <div className="mt-6 flex justify-end">
-                <button className="rounded-full bg-[#213f68] px-7 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50" type="submit" disabled={!selectedPackageId}>
+                <button className="rounded-full bg-[#59923E] px-7 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50" type="submit" disabled={!selectedPackageId}>
                     {selectedPackage ? `ไปหน้าชำระเงิน ${formatPrice(selectedPackage.price)} →` : 'เลือกแพ็กเกจ'}
                 </button>
             </div>

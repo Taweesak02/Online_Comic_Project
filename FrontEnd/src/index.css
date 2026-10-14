@@ -1,7 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 body {
 	margin: 0;
 	background: #f8fafc;
-	font-family: "Sarabun", "Tahoma", sans-serif;
+	font-family: "Mali","Sarabun", "Tahoma", sans-serif;
 }

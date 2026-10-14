@@ -1,6 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getCoinPackages, getPaymentMethods, getWallet, purchaseCoins, getPaymentStatus, verifyPaymentSlip, cancelPayment, cancelPaymentOnPageExit } from '../../../api/coinPurchaseApi';
+import { getCoinPackages, getPaymentMethods, getWallet, purchaseCoins, getPaymentStatus, verifyPaymentSlip, cancelPayment } from '../../../api/coinPurchaseApi';
+
+const pendingPaymentKey = 'pendingCoinPayment';
+
+const getSavedPendingPayment = () => {
+    try {
+        const saved = JSON.parse(localStorage.getItem(pendingPaymentKey));
+        if (!saved?.packageId || !saved?.payment?.paymentTransactionId) return null;
+        return saved;
+    } catch {
+        localStorage.removeItem(pendingPaymentKey);
+        return null;
+    }
+};
+
+const savePendingPayment = (packageId, payment) => {
+    localStorage.setItem(pendingPaymentKey, JSON.stringify({ packageId, payment }));
+};
+
+const clearSavedPendingPayment = () => localStorage.removeItem(pendingPaymentKey);
 
 export default function usePayment({ isLoggedIn, onBalanceChange }) {
     const [searchParams] = useSearchParams();
@@ -17,29 +36,6 @@ export default function usePayment({ isLoggedIn, onBalanceChange }) {
     const [checking, setChecking] = useState(false);
     const [cancelling, setCancelling] = useState(false);
     const [statusMessage, setStatusMessage] = useState('');
-    const pendingTransaction = useRef(null);
-    const pageActive = useRef(false);
-
-    useEffect(() => {
-        pageActive.current = true;
-        const cancelPending = (exitingDocument = false) => {
-            const transactionId = pendingTransaction.current;
-            if (!transactionId) return;
-            pendingTransaction.current = null;
-            const cancel = exitingDocument ? cancelPaymentOnPageExit : cancelPayment;
-            void cancel(transactionId).catch(() => {
-                // A completed payment may already have been settled by the server.
-            });
-        };
-        const handlePageHide = () => cancelPending(true);
-        window.addEventListener('pagehide', handlePageHide);
-        return () => {
-            pageActive.current = false;
-            window.removeEventListener('pagehide', handlePageHide);
-            cancelPending();
-        };
-    }, []);
-
     useEffect(() => {
         if (!isLoggedIn || !packageId) return;
 
@@ -47,9 +43,16 @@ export default function usePayment({ isLoggedIn, onBalanceChange }) {
         Promise.all([getCoinPackages(), getPaymentMethods()])
             .then(([packages, methods]) => {
                 if (!active) return;
-                setCoinPackage(packages.find((item) => String(item.id) === packageId) ?? null);
+                const savedPendingPayment = getSavedPendingPayment();
+                const activePackageId = savedPendingPayment?.packageId ?? packageId;
+                const activePackage = packages.find((item) => String(item.id) === String(activePackageId)) ?? null;
+                setCoinPackage(activePackage);
                 setPaymentMethods(methods);
                 setPaymentMethodId(String(methods[0]?.id ?? ''));
+                if (savedPendingPayment && activePackage) {
+                    setPayment(savedPendingPayment.payment);
+                    setStatusMessage('มีรายการชำระเงินที่รอดำเนินการอยู่ ระบบเปิดรายการเดิมเพื่อให้ชำระเงินต่อ');
+                }
             })
             .catch((requestError) => {
                 if (active) setError(requestError.response?.data?.message || 'ไม่สามารถโหลดข้อมูลการชำระเงินได้');
@@ -70,12 +73,7 @@ export default function usePayment({ isLoggedIn, onBalanceChange }) {
         setStatusMessage('');
         try {
             const result = await purchaseCoins(coinPackage.id, paymentMethodId);
-            if (!pageActive.current) {
-                // Navigation can happen before the purchase request returns its ID.
-                await cancelPayment(result.paymentTransactionId);
-                return;
-            }
-            pendingTransaction.current = result.paymentTransactionId;
+            savePendingPayment(packageId, result);
             setPayment(result);
             setStatusMessage('รอการชำระเงิน');
         } catch (requestError) {
@@ -94,11 +92,10 @@ export default function usePayment({ isLoggedIn, onBalanceChange }) {
                 ? (await verifyPaymentSlip(payment.paymentTransactionId, slip)).payment
                 : await getPaymentStatus(payment.paymentTransactionId);
             if (result?.paymentStatus) {
-                if (result.paymentStatus !== 'PENDING') pendingTransaction.current = null;
                 setPayment((current) => ({ ...current, paymentStatus: result.paymentStatus }));
             }
-            if (!pageActive.current) return;
             if (result?.paymentStatus === 'COMPLETED') {
+                clearSavedPendingPayment();
                 const wallet = await getWallet();
                 onBalanceChange?.(wallet?.balance ?? 0);
                 navigate('/wallet/transactions', {
@@ -106,6 +103,7 @@ export default function usePayment({ isLoggedIn, onBalanceChange }) {
                     state: { paymentSuccess: `ซื้อ ${coinPackage.coinAmount} เหรียญสำเร็จ` },
                 });
             } else {
+                if (result?.paymentStatus && result.paymentStatus !== 'PENDING') clearSavedPendingPayment();
                 setStatusMessage(result?.paymentStatus === 'PENDING' ? 'รอการชำระเงิน กรุณาชำระเงินแล้วแนบสลิป' : `สถานะ: ${result?.paymentStatus ?? 'ไม่ทราบ'}`);
             }
         } catch (requestError) {
@@ -122,7 +120,7 @@ export default function usePayment({ isLoggedIn, onBalanceChange }) {
         setError('');
         try {
             await cancelPayment(payment.paymentTransactionId);
-            pendingTransaction.current = null;
+            clearSavedPendingPayment();
             setPayment(null);
             setSlip(null);
             setStatusMessage('ยกเลิกการชำระเงินแล้ว สามารถเลือกรายการชำระเงินใหม่ได้');
