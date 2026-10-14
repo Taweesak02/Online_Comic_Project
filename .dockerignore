@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+.git
+.agents
+.codex
+.vscode
+.idea
+.env
+.env.*
+*.local
+*.log
+logs
+coverage
+README.md
+**/README.md
+.DS_Store
