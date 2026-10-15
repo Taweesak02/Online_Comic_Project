@@ -1,0 +1,58 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    if: >-
+      (github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success') &&
+      vars.VPS_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/online-comic
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push backend image
+        run: |
+          docker build -t "$IMAGE_PREFIX-backend:latest" -t "$IMAGE_PREFIX-backend:sha-${GITHUB_SHA::7}" ./BackEnd
+          docker push "$IMAGE_PREFIX-backend:latest"
+          docker push "$IMAGE_PREFIX-backend:sha-${GITHUB_SHA::7}"
+      - name: Build and push frontend image
+        run: |
+          docker build \
+            --build-arg VITE_API_URL="${{ vars.VITE_API_URL }}" \
+            -t "$IMAGE_PREFIX-frontend:latest" \
+            -t "$IMAGE_PREFIX-frontend:sha-${GITHUB_SHA::7}" ./FrontEnd
+          docker push "$IMAGE_PREFIX-frontend:latest"
+          docker push "$IMAGE_PREFIX-frontend:sha-${GITHUB_SHA::7}"
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd "${{ vars.VPS_APP_DIR }}"
+            export APP_IMAGE="ghcr.io/${{ github.repository_owner }}/online-comic-backend:sha-${GITHUB_SHA::7}"
+            export MIGRATOR_IMAGE="$APP_IMAGE"
+            export FRONTEND_IMAGE="ghcr.io/${{ github.repository_owner }}/online-comic-frontend:sha-${GITHUB_SHA::7}"
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker compose ps
+            curl --fail --retry 12 --retry-delay 5 http://127.0.0.1:${APP_PORT:-3000}/api/health

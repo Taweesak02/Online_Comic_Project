@@ -1,0 +1,21 @@
+services:
+  db:
+    ports:
+      - "127.0.0.1:${DB_HOST_PORT:-5432}:5432"
+
+  app:
+    build:
+      context: ./BackEnd
+      dockerfile: Dockerfile
+
+  migrate:
+    build:
+      context: ./BackEnd
+      dockerfile: Dockerfile
+
+  frontend:
+    build:
+      context: ./FrontEnd
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}

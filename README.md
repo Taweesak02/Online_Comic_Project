@@ -22,15 +22,14 @@
 คัดลอกไฟล์ตัวอย่างเฉพาะการติดตั้งครั้งแรก หากมีไฟล์ `.env` ที่ตั้งค่าไว้แล้ว ให้ใช้ไฟล์เดิมเพื่อไม่ให้ค่าถูกเขียนทับ
 
 ```powershell
-Copy-Item BackEnd/.env.example BackEnd/.env
-Copy-Item FrontEnd/.env.example FrontEnd/.env
+Copy-Item .env.example .env
 ```
 
 สำหรับ macOS/Linux ใช้ `cp` แทน `Copy-Item`
 
 ### 2. กำหนดค่าระบบ
 
-แก้ไข `BackEnd/.env` โดยกำหนดค่าต่อไปนี้:
+แก้ไข `.env` ที่รากโปรเจกต์ โดยกำหนดค่าต่อไปนี้:
 
 | ตัวแปร | หน้าที่ |
 | --- | --- |
@@ -40,32 +39,23 @@ Copy-Item FrontEnd/.env.example FrontEnd/.env
 | `JWT_SECRET` | ค่าสุ่มสำหรับลงนามโทเคนยืนยันตัวตน |
 | `SEED_ADMIN_PASSWORD` | รหัสผ่านของผู้ดูแลระบบที่สร้างครั้งแรก |
 | `DB_HOST_PORT` | พอร์ตฐานข้อมูลบนเครื่อง ค่าเริ่มต้นคือ `5432` |
-| `PORT` | พอร์ต API บนเครื่อง ค่าเริ่มต้นคือ `3000` |
+| `APP_PORT` | พอร์ต API บนเครื่อง ค่าเริ่มต้นคือ `3000` |
+| `FRONTEND_PORT` | พอร์ตเว็บไซต์บนเครื่อง ค่าเริ่มต้นคือ `8080` |
+| `VITE_API_URL` | URL ของ API ที่ browser เข้าถึงได้ |
 
 เปลี่ยนรหัสผ่านตัวอย่างและใช้ `JWT_SECRET` ที่ยาวและสุ่มขึ้นใหม่ หากชื่อผู้ใช้หรือรหัสผ่านฐานข้อมูลมีอักขระพิเศษของ URL ต้องเข้ารหัสอักขระเหล่านั้นในสตริงเชื่อมต่อ สำหรับการตั้งค่า Docker ที่นำค่ามาประกอบ URL โดยตรง ควรใช้ชื่อผู้ใช้และรหัสผ่านที่ประกอบด้วยอักขระที่ปลอดภัยสำหรับ URL
 
-แก้ไข `FrontEnd/.env`:
-
-```dotenv
-FRONTEND_PORT=8080
-VITE_API_URL=http://localhost:3000/api
-```
-
 `VITE_API_URL` ต้องเป็นที่อยู่ที่เบราว์เซอร์เข้าถึงได้ หากเปลี่ยน `PORT` ของ API ให้แก้พอร์ตใน URL นี้ด้วย เมื่อนำขึ้นเซิร์ฟเวอร์ให้ใช้ URL ของ API ที่ผู้ใช้งานเข้าถึงได้ และสร้าง Frontend ใหม่ทุกครั้งที่เปลี่ยนค่านี้
 
-เก็บข้อมูลลับไว้ใน `BackEnd/.env` ส่วน `FrontEnd/.env` ใช้สำหรับพอร์ตเว็บไซต์และ URL สาธารณะของ API ทั้งสองส่วนไม่นำไฟล์ `.env` จริงเข้า Git ให้เก็บเฉพาะ `.env.example` ที่ไม่มีข้อมูลลับ
+เก็บข้อมูลลับไว้ใน `.env` และไม่นำไฟล์ `.env` จริงเข้า Git ให้เก็บเฉพาะ `.env.example` ที่ไม่มีข้อมูลลับ
 
 ### 3. สร้างและเปิดบริการ
 
 ```powershell
-docker compose -p onlinecomic --env-file BackEnd/.env --env-file FrontEnd/.env up -d --build
+docker compose --env-file .env up -d --build
 ```
 
-ตัวอย่างกำหนดชื่อโปรเจกต์เป็น `onlinecomic` ด้วย `-p` ให้ชัดเจน เพราะไฟล์ Compose ปัจจุบันระบุ `name: Onlinecomic` ที่มีตัวพิมพ์ใหญ่ ควรใช้ชื่อโปรเจกต์ตัวพิมพ์เล็กและใช้ชื่อเดียวกันทุกคำสั่ง
-
-ระบุ `--env-file` ทั้งสองไฟล์ในทุกคำสั่ง Compose เพื่อให้ระบบอ่านค่าที่ใช้ในไฟล์ Compose ได้ครบ โดยมีเฉพาะไฟล์ตั้งค่าของ Backend ที่ถูกส่งเข้า API container ส่วน Frontend รับค่า `VITE_API_URL` ตอนสร้างเว็บไซต์
-
-ระบบจะรอให้ PostgreSQL พร้อมใช้งาน จากนั้น Backend จะปรับโครงสร้างฐานข้อมูลด้วย Prisma migrations เพิ่มข้อมูลเริ่มต้น และเปิด API ส่วน Frontend จะเริ่มหลังจาก API ผ่านการตรวจสอบสถานะ
+Compose จะรอ PostgreSQL ให้พร้อม จากนั้น service `migrate` จะ deploy Prisma migrations และ seed แบบแยกจาก API ก่อนเปิด Backend ส่วน Frontend จะเริ่มหลังจาก health check ของ API ผ่าน
 
 ### 4. เข้าใช้งาน
 
@@ -75,7 +65,7 @@ docker compose -p onlinecomic --env-file BackEnd/.env --env-file FrontEnd/.env u
 | Backend API | http://localhost:3000/api |
 | เอกสาร API | http://localhost:3000/api-docs |
 | ตรวจสอบสถานะ API | http://localhost:3000/api/health |
-| PostgreSQL | `localhost:5432` |
+| PostgreSQL | `localhost:5432` ใน local override เท่านั้น |
 
 บัญชีผู้ดูแลระบบเริ่มต้นใช้อีเมล `admin@example.com` และรหัสผ่านจาก `SEED_ADMIN_PASSWORD` การเปลี่ยนตัวแปรนี้ภายหลังจะไม่เปลี่ยนรหัสผ่านของบัญชีที่มีอยู่แล้ว
 
@@ -86,13 +76,13 @@ docker compose -p onlinecomic --env-file BackEnd/.env --env-file FrontEnd/.env u
 ตรวจสอบความถูกต้องของการตั้งค่า:
 
 ```powershell
-docker compose -p onlinecomic --env-file BackEnd/.env --env-file FrontEnd/.env config --quiet
+docker compose --env-file .env config --quiet
 ```
 
 ดูสถานะบริการ:
 
 ```powershell
-docker compose -p onlinecomic --env-file BackEnd/.env --env-file FrontEnd/.env ps
+docker compose --env-file .env ps
 ```
 
 ดูบันทึกการทำงานของ API และเว็บไซต์ กด `Ctrl+C` เพื่อออกจากการดูบันทึก:

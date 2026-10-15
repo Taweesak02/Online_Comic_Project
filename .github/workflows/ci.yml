@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            BackEnd/package-lock.json
+            FrontEnd/package-lock.json
+      - name: Install dependencies
+        working-directory: ${{ matrix.service == 'backend' && 'BackEnd' || 'FrontEnd' }}
+        run: npm ci
+      - name: Run backend tests
+        if: matrix.service == 'backend'
+        working-directory: BackEnd
+        run: npm test -- --runInBand
+      - name: Run frontend lint and tests
+        if: matrix.service == 'frontend'
+        working-directory: FrontEnd
+        run: npm run lint && npm test -- --run
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build -t onlinecomic-backend:ci ./BackEnd
+      - name: Build frontend image
+        run: docker build --build-arg VITE_API_URL=http://localhost:3000/api -t onlinecomic-frontend:ci ./FrontEnd

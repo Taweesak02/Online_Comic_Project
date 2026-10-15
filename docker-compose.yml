@@ -1,15 +1,11 @@
-name: Onlinecomic
-
 services:
   db:
     image: postgres:17-alpine
     restart: unless-stopped
-    ports:
-      - "${DB_HOST_PORT:-5432}:5432"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in BackEnd/.env}
-      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in BackEnd/.env}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in BackEnd/.env}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -18,44 +14,53 @@ services:
       timeout: 5s
       retries: 10
 
-  app:
-    build:
-      context: ./BackEnd
-    restart: unless-stopped
+  migrate:
+    image: ${MIGRATOR_IMAGE:-${APP_IMAGE:-onlinecomic-backend:local}}
+    restart: "no"
     depends_on:
       db:
         condition: service_healthy
-    env_file:
-      - ./BackEnd/.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@example.com}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD is required}
+    command: ["sh", "-c", "npm run prisma:deploy && npm run prisma:seed"]
+
+  app:
+    image: ${APP_IMAGE:-onlinecomic-backend:local}
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     environment:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
-      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in BackEnd/.env}
-      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?Set SEED_ADMIN_PASSWORD in BackEnd/.env}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_ACCESS_TOKEN_EXPIRES_IN: ${JWT_ACCESS_TOKEN_EXPIRES_IN:-15m}
+      JWT_REFRESH_TOKEN_EXPIRES_IN_MINUTES: ${JWT_REFRESH_TOKEN_EXPIRES_IN_MINUTES:-10080}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@example.com}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD is required}
     ports:
-      - "${PORT:-3000}:3000"
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
     volumes:
-      - ./BackEnd/public/uploads:/app/public/uploads
-    command: ["sh", "-c", "npm run prisma:deploy && npx prisma db seed && npm run start"]
+      - uploads-data:/app/public/uploads
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 10s
       timeout: 5s
-      start_period: 60s
+      start_period: 30s
       retries: 10
 
   frontend:
-    build:
-      context: ./FrontEnd
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
+    image: ${FRONTEND_IMAGE:-onlinecomic-frontend:local}
     restart: unless-stopped
     depends_on:
       app:
         condition: service_healthy
     ports:
-      - "${FRONTEND_PORT:-8080}:80"
+      - "127.0.0.1:${FRONTEND_PORT:-8080}:8080"
 
 volumes:
   postgres-data:
+  uploads-data:
