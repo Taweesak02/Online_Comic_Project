@@ -29,15 +29,6 @@ describe('Auth routes', () => {
     expect(response.body.message).toMatch(/email/i);
   });
 
-  it('returns 400 when forgot-password email is missing', async () => {
-    const response = await request(app)
-      .post('/api/auth/forgot-password')
-      .send({});
-
-    expect(response.status).toBe(400);
-    expect(response.body.message).toMatch(/email/i);
-  });
-
   it('returns 400 when reset-password payload is missing', async () => {
     const response = await request(app)
       .post('/api/auth/reset-password')

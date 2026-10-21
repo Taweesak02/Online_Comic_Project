@@ -7,6 +7,7 @@
     "dev": "nodemon index.js",
     "build": "tsc",
     "start": "node index.js",
+    "pretest": "prisma generate",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "prisma:generate": "prisma generate",

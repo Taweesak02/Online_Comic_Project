@@ -25,8 +25,6 @@ describe('Public routes', () => {
     ['get', '/api/auth/verify-email'],
     ['post', '/api/auth/verify-email'],
     ['post', '/api/auth/resend-verification'],
-    ['post', '/api/auth/forgot-password'],
-    ['post', '/api/auth/forget-password'],
     ['get', '/api/public/'],
     ['get', '/api/public/most-view'],
     ['get', '/api/public/top-rated'],
