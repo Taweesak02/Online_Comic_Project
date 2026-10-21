@@ -13,7 +13,10 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, '../../public/uploads')));
+app.use('/uploads', (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+}, express.static(path.join(__dirname, '../../public/uploads')));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapi));
 app.get('/api-docs.json', (_req, res) => res.json(openapi));

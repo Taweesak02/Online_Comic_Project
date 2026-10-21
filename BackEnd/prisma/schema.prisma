@@ -176,6 +176,7 @@ model CoinTransaction {
 enum TransactionType {
   PURCHASE
   SPEND
+  CREATOR_REWARD
 }
 
 model PaymentMethod {

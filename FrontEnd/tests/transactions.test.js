@@ -29,6 +29,7 @@ test('explicit transaction types determine credit or debit regardless of amount 
         for (const type of ['credit', 'deposit', 'purchase', 'topup', 'top_up', 'refund']) {
             assert.equal(isCreditTransaction({ [field]: type.toUpperCase() }, -100), true);
         }
+        assert.equal(isCreditTransaction({ [field]: 'CREATOR_REWARD' }, -100), true);
     }
 });
 
@@ -42,6 +43,7 @@ test('unrecognized transaction types fall back to the amount sign', () => {
 
 test('wallet titles use descriptions first and localized type labels otherwise', () => {
     assert.equal(getTransactionTitle({ description: 'Chapter 12', type: 'unlock' }), 'Chapter 12');
+    assert.equal(getTransactionTitle({ transactionType: 'CREATOR_REWARD' }), 'รายได้จากการปลดล็อก');
     for (const field of ['type', 'transactionType', 'transaction_type']) {
         for (const type of ['credit', 'deposit', 'purchase', 'topup', 'top_up']) {
             assert.equal(getTransactionTitle({ [field]: type.toUpperCase() }), 'เติมเหรียญ');

@@ -5,7 +5,7 @@ const {formatChapterContent} = require('./chapter.model')
 const {incrementChapterCount,decreaseChapterCount} = require('../comicManagement/comicManagement.service')
 const {upsertReadHistory} = require('../history/history.service')
 const { notifyFollowersOfNewChapter } = require('../notification/notification.service');
-const { decreaseWallet } = require('../wallet/wallet.service');
+const { decreaseWallet, increaseWallet } = require('../wallet/wallet.service');
 
 // แสดง ตอน ด้วย ComicId
 const getChaptersByComicId = async(comicId)=>{
@@ -247,7 +247,10 @@ const removeChapter = async(chapterId,userId,userRole)=>{
 
 //ปลดล็อก ตอน
 const unlockChapter = async(chapterId,userId)=>{
-    const chapter = await prisma.chapter.findUnique({ where: { id: chapterId } });
+    const chapter = await prisma.chapter.findUnique({
+        where: { id: chapterId },
+        include: { comic: { select: { creatorId: true } } }
+    });
  
     if (!chapter) {
         throw new AppError('Chapter not found', 404);
@@ -275,9 +278,21 @@ const unlockChapter = async(chapterId,userId)=>{
         if (wallet.balance < chapter.coinCost) {
             throw new AppError('Not enough coins', 402);
         }
- 
+
         await decreaseWallet(wallet.id, chapter.coinCost, tx);
- 
+
+        const ownerWallet = await tx.coinWallet.findUnique({
+            where: { userId: chapter.comic.creatorId }
+        });
+
+        if (!ownerWallet) {
+            throw new AppError('Comic owner wallet not found', 404);
+        }
+
+        await increaseWallet(ownerWallet.id, chapter.coinCost, tx, {
+            transactionType: 'CREATOR_REWARD'
+        });
+
         const unlock = await tx.chapterUnlock.create({
             data: {
                 chapterId,userId 

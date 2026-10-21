@@ -1,5 +1,4 @@
 const prisma = require('../../configs/db');
-const AppError = require('../../utils/AppError');
 
 const getWallet = async(userId)=>{
     const balance = await prisma.coinWallet.findUnique({

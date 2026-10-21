@@ -1,5 +1,6 @@
 import usePublicProfile from '../hooks/usePublicProfile';
 import { Link } from 'react-router-dom';
+import { getCoverUrl } from '../../../utils/comicUtils';
 
 export default function ProfileContent({ userId, initialUser, username }) {
     const { state } = usePublicProfile({ userId, initialUser, username });
@@ -22,7 +23,7 @@ export default function ProfileContent({ userId, initialUser, username }) {
                     {state.comics.map((comic) => <li key={comic.id}>
                         <Link to={`/comics/${comic.id}`} className="flex h-full gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md focus-visible:outline-2 focus-visible:outline-[#213f68]">
                             <div className="h-36 w-24 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                                {comic.coverImage && <img src={comic.coverImage} alt="" className="size-full object-cover" />}
+                                {comic.coverImage && <img src={getCoverUrl(comic.coverImage)} alt="" className="size-full object-cover" />}
                             </div>
                             <div className="min-w-0"><h3 className="break-words font-bold text-[#213f68]">{comic.title}</h3>
                                 <p className="mt-2 line-clamp-3 text-sm text-slate-600">{comic.description}</p>
@@ -34,4 +35,3 @@ export default function ProfileContent({ userId, initialUser, username }) {
         </section>
     </>;
 }
-
