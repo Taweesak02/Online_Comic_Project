@@ -4,7 +4,7 @@ const formatStat = (stat) => {
     return Number(stat.value).toLocaleString('th-TH');
 };
 
-export default function ComicDashboard({ comics, overview, overviewError, onRetry, onChange }) {
+export default function ComicDashboard({ overview, overviewError, onRetry, onChange }) {
     const stats = [
         { label: 'การ์ตูนทั้งหมด', value: overview?.totalComics },
         { label: 'ตอนทั้งหมด', value: overview?.totalChapters },
@@ -15,7 +15,7 @@ export default function ComicDashboard({ comics, overview, overviewError, onRetr
         { label: 'ผู้ติดตาม', value: overview?.totalFollowers },
     ];
     const statusCards = [
-        { label: 'อนุมัติแล้ว', value: overview?.approval?.approved, section: 'comics' },
+        { label: 'อนุมัติและเปิดใช้งาน', value: overview?.approval?.approved, section: 'comics' },
         { label: 'ยังไม่อนุมัติ', value: overview?.approval?.unapproved, section: 'review' },
         { label: 'ส่งตรวจใหม่', value: overview?.approval?.resubmit, section: 'review' },
         { label: 'ปิดใช้งานแล้ว', value: overview?.approval?.inactive, section: 'inactive' },

@@ -34,7 +34,6 @@ export default function ComicManagementPage() {
       if (activeSection === "dashboard") {
           return (
               <ComicDashboard
-                comics={comics}
                 overview={overview}
                 overviewError={overviewError}
                 onRetry={loadOverview}

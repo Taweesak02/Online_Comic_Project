@@ -7,7 +7,7 @@ RUN apt-get update \
 	&& rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --no-audit --no-fund --maxsockets=1
 
 COPY prisma ./prisma
 COPY prisma.config.ts tsconfig.json index.js ./
@@ -24,17 +24,15 @@ RUN apt-get update \
 	&& apt-get install -y --no-install-recommends openssl \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& groupadd --system app \
-	&& useradd --system --gid app --create-home app
+	&& useradd --system --gid app --create-home app \
+	&& mkdir -p /app/public/uploads
 
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/package*.json ./
-COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/prisma.config.ts /app/tsconfig.json /app/index.js ./
-COPY --from=build /app/src ./src
-COPY --from=build /app/public ./public
-
-RUN mkdir -p /app/public/uploads \
-	&& chown -R app:app /app
+COPY --from=build --chown=app:app /app/node_modules ./node_modules
+COPY --from=build --chown=app:app /app/package*.json ./
+COPY --from=build --chown=app:app /app/prisma ./prisma
+COPY --from=build --chown=app:app /app/prisma.config.ts /app/tsconfig.json /app/index.js ./
+COPY --from=build --chown=app:app /app/src ./src
+COPY --from=build --chown=app:app /app/public ./public
 
 ENV NODE_ENV=production
 EXPOSE 3000

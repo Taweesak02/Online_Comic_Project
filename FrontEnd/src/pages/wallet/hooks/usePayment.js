@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getCoinPackages, getPaymentMethods, getWallet, purchaseCoins, getPaymentStatus, verifyPaymentSlip, cancelPayment } from '../../../api/coinPurchaseApi';
+import { getCoinPackages, getPaymentMethods, getWallet, purchaseCoins, getPaymentStatus, verifyPaymentSlip, cancelPayment, cancelPaymentOnPageExit } from '../../../api/coinPurchaseApi';
 
 const pendingPaymentKey = 'pendingCoinPayment';
 
@@ -36,6 +36,12 @@ export default function usePayment({ isLoggedIn, onBalanceChange }) {
     const [checking, setChecking] = useState(false);
     const [cancelling, setCancelling] = useState(false);
     const [statusMessage, setStatusMessage] = useState('');
+    const mountedRef = useRef(true);
+    const pageExitCancellations = useRef(new Set());
+
+    useEffect(() => () => {
+        mountedRef.current = false;
+    }, []);
     useEffect(() => {
         if (!isLoggedIn || !packageId) return;
 
@@ -64,6 +70,22 @@ export default function usePayment({ isLoggedIn, onBalanceChange }) {
         return () => { active = false; };
     }, [isLoggedIn, packageId]);
 
+    useEffect(() => {
+        const transactionId = payment?.paymentTransactionId;
+        if (!transactionId || (payment.paymentStatus && payment.paymentStatus !== 'PENDING')) return undefined;
+
+        const handlePageExit = () => {
+            if (pageExitCancellations.current.has(transactionId)) return;
+            pageExitCancellations.current.add(transactionId);
+            clearSavedPendingPayment();
+            void cancelPaymentOnPageExit(transactionId).catch((requestError) => {
+                console.error('Unable to cancel payment on page exit', requestError);
+            });
+        };
+        window.addEventListener('pagehide', handlePageExit);
+        return () => window.removeEventListener('pagehide', handlePageExit);
+    }, [payment]);
+
     const submitPayment = async (event) => {
         event.preventDefault();
         if (!coinPackage || !paymentMethodId || paying || payment) return;
@@ -73,6 +95,10 @@ export default function usePayment({ isLoggedIn, onBalanceChange }) {
         setStatusMessage('');
         try {
             const result = await purchaseCoins(coinPackage.id, paymentMethodId);
+            if (!mountedRef.current) {
+                if (result?.paymentTransactionId) await cancelPayment(result.paymentTransactionId);
+                return;
+            }
             savePendingPayment(packageId, result);
             setPayment(result);
             setStatusMessage('รอการชำระเงิน');
@@ -103,7 +129,7 @@ export default function usePayment({ isLoggedIn, onBalanceChange }) {
                     state: { paymentSuccess: `ซื้อ ${coinPackage.coinAmount} เหรียญสำเร็จ` },
                 });
             } else {
-                if (result?.paymentStatus && result.paymentStatus !== 'PENDING') clearSavedPendingPayment();
+                if (result?.paymentStatus !== 'PENDING') clearSavedPendingPayment();
                 setStatusMessage(result?.paymentStatus === 'PENDING' ? 'รอการชำระเงิน กรุณาชำระเงินแล้วแนบสลิป' : `สถานะ: ${result?.paymentStatus ?? 'ไม่ทราบ'}`);
             }
         } catch (requestError) {

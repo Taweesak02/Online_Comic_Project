@@ -47,6 +47,19 @@ export const getPaymentStatus = async (transactionId) => unwrap((await api.get(`
 
 export const cancelPayment = async (transactionId) => unwrap((await api.patch(`/payment/${encodeURIComponent(transactionId)}/cancel`)).data);
 
+export const cancelPaymentOnPageExit = async (transactionId) => {
+    const headers = {};
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+    const baseUrl = api.defaults.baseURL.replace(/\/$/, '');
+    const response = await fetch(`${baseUrl}/payment/${encodeURIComponent(transactionId)}/cancel`, {
+        method: 'PATCH',
+        headers,
+        keepalive: true,
+    });
+    if (!response.ok) throw new Error('Unable to cancel payment');
+};
+
 export const verifyPaymentSlip = async (transactionId, slip) => {
     const formData = new FormData();
     formData.append('slip', slip);

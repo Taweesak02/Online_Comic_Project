@@ -7,15 +7,14 @@ services:
     build:
       context: ./BackEnd
       dockerfile: Dockerfile
-
-  migrate:
-    build:
-      context: ./BackEnd
-      dockerfile: Dockerfile
+      provenance: false
+      sbom: false
 
   frontend:
     build:
       context: ./FrontEnd
       dockerfile: Dockerfile
+      provenance: false
+      sbom: false
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
