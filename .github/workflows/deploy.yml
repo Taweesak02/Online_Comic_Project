@@ -20,11 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
-      IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/online-comic
+      IMAGE_PREFIX: ghcr.io
     steps:
       - uses: actions/checkout@v4
-      - name: Short SHA
-        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+      - name: Prepare variables
+        run: |
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+          echo "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/online-comic" >> "$GITHUB_ENV"
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -51,9 +53,9 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd "${{ vars.VPS_APP_DIR }}"
-            export APP_IMAGE="ghcr.io/${{ github.repository_owner }}/online-comic-backend:sha-${GITHUB_SHA::7}"
+            export APP_IMAGE="${{ env.IMAGE_PREFIX }}-backend:sha-${{ env.SHORT_SHA }}"
             export MIGRATOR_IMAGE="$APP_IMAGE"
-            export FRONTEND_IMAGE="ghcr.io/${{ github.repository_owner }}/online-comic-frontend:sha-${GITHUB_SHA::7}"
+            export FRONTEND_IMAGE="${{ env.IMAGE_PREFIX }}-frontend:sha-${{ env.SHORT_SHA }}"
             docker compose pull
             docker compose up -d --remove-orphans
             docker compose ps
