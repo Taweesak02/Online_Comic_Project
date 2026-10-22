@@ -23,6 +23,8 @@ jobs:
       IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/online-comic
     steps:
       - uses: actions/checkout@v4
+      - name: Short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
