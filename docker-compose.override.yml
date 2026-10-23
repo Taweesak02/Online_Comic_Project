@@ -7,8 +7,6 @@ services:
     build:
       context: ./BackEnd
       dockerfile: Dockerfile
-      provenance: false
-      sbom: false
 
   frontend:
     build:
