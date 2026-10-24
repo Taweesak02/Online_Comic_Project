@@ -26,11 +26,20 @@ services:
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD is required}
     command: ["sh", "-c", "npm run prisma:deploy && npm run prisma:seed"]
 
+  uploads-permissions:
+    image: ${APP_IMAGE:-onlinecomic-backend:local}
+    user: root
+    volumes:
+      - uploads-data:/app/public/uploads
+    command: ["sh", "-c", "chown -R app:app /app/public/uploads"]
+
   app:
     image: ${APP_IMAGE:-onlinecomic-backend:local}
     restart: unless-stopped
     depends_on:
       migrate:
+        condition: service_completed_successfully
+      uploads-permissions:
         condition: service_completed_successfully
     environment:
       NODE_ENV: production

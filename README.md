@@ -99,7 +99,7 @@ docker compose -p onlinecomic --env-file BackEnd/.env --env-file FrontEnd/.env d
 
 ## การเก็บข้อมูลและการย้ายจากการตั้งค่าเดิม
 
-เมื่อใช้ชื่อโปรเจกต์ `onlinecomic` ตามตัวอย่าง ข้อมูล PostgreSQL จะอยู่ใน volume `onlinecomic_postgres-data` ส่วนไฟล์อัปโหลดอยู่ใน `BackEnd/public/uploads`
+เมื่อใช้ชื่อโปรเจกต์ `onlinecomic` ตามตัวอย่าง ข้อมูล PostgreSQL จะอยู่ใน volume `onlinecomic_postgres-data` ส่วนไฟล์อัปโหลดอยู่ใน volume `onlinecomic_uploads-data` โดย service `uploads-permissions` จะซ่อมสิทธิ์ของ volume ทุกครั้งก่อนเริ่ม API เพื่อให้ container ที่ทำงานด้วย user ที่ไม่ใช่ root สามารถเขียนไฟล์ได้ รวมถึง volume ที่สร้างจาก deployment เดิม
 
 คำสั่ง `down` ปกติจะเก็บข้อมูลเหล่านี้ไว้ แต่การเพิ่ม `--volumes` จะลบ volume ฐานข้อมูล จึงควรสำรองข้อมูลก่อนใช้
 

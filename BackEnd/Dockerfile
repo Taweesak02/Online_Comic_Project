@@ -33,6 +33,7 @@ COPY --from=build --chown=app:app /app/prisma ./prisma
 COPY --from=build --chown=app:app /app/prisma.config.ts /app/tsconfig.json /app/index.js ./
 COPY --from=build --chown=app:app /app/src ./src
 COPY --from=build --chown=app:app /app/public ./public
+RUN chown -R app:app /app/public/uploads
 
 ENV NODE_ENV=production
 EXPOSE 3000

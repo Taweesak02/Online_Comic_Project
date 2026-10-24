@@ -16,6 +16,14 @@ services:
       timeout: 5s
       retries: 10
 
+  uploads-permissions:
+    build:
+      context: .
+    user: root
+    volumes:
+      - ./public/uploads:/app/public/uploads
+    command: ["sh", "-c", "chown -R app:app /app/public/uploads"]
+
   app:
     build:
       context: .
@@ -23,6 +31,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      uploads-permissions:
+        condition: service_completed_successfully
     environment:
       NODE_ENV: production
       PORT: 3000
