@@ -40,7 +40,7 @@ jobs:
       - name: Build and push frontend image
         run: |
           docker build \
-            --build-arg VITE_API_URL="${{ vars.VITE_API_URL }}" \
+            --build-arg VITE_API_URL="${{ vars.VITE_API_URL || '/api' }}" \
             -t "$IMAGE_PREFIX-frontend:latest" \
             -t "$IMAGE_PREFIX-frontend:sha-${GITHUB_SHA::7}" ./FrontEnd
           docker push "$IMAGE_PREFIX-frontend:latest"
